@@ -59,9 +59,17 @@ extern unsigned int __ipipe_printk_virq;
 
 void __ipipe_set_irq_pending(struct ipipe_domain *ipd, unsigned int irq);
 
+void __ipipe_complete_domain_migration(void);
+
+int __ipipe_switch_tail(void);
+
 void __ipipe_share_current(int flags);
 
 void __ipipe_arch_share_current(int flags);
+
+int __ipipe_migrate_head(void);
+
+void __ipipe_reenter_root(void);
 
 int __ipipe_disable_ondemand_mappings(struct task_struct *p);
 
@@ -412,6 +420,13 @@ int ipipe_get_domain_slope_hook(struct task_struct *prev,
 #define ipipe_root_p		1
 
 static inline void __ipipe_init_threadflags(struct thread_info *ti) { }
+
+static inline void __ipipe_complete_domain_migration(void) { }
+
+static inline int __ipipe_switch_tail(void)
+{
+	return 0;
+}
 
 static inline void __ipipe_nmi_enter(void) { }
 
