@@ -97,8 +97,6 @@ __visible void trace_hardirqs_off_caller(unsigned long caller_addr)
 	if (!ipipe_root_p)
 		return;
 
-	lockdep_hardirqs_off(CALLER_ADDR0);
-
 	if (!this_cpu_read(tracing_irq_cpu)) {
 		this_cpu_write(tracing_irq_cpu, 1);
 		tracer_hardirqs_off(CALLER_ADDR0, caller_addr);

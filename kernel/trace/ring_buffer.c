@@ -2740,16 +2740,8 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
 	flags = hard_local_irq_save();
 
 	if (unlikely(val & (1 << (bit + cpu_buffer->nest)))) {
-		/*
-		 * It is possible that this was called by transitioning
-		 * between interrupt context, and preempt_count() has not
-		 * been updated yet. In this case, use the TRANSITION bit.
-		 */
-		bit = RB_CTX_TRANSITION;
-		if (val & (1 << (bit + cpu_buffer->nest))) {
-			hard_local_irq_restore(flags);
-			return 1;
-		}
+		hard_local_irq_restore(flags);
+		return 1;
 	}
 
 	val |= (1 << (bit + cpu_buffer->nest));
