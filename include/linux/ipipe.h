@@ -256,7 +256,6 @@ int __ipipe_pin_vma(struct mm_struct *mm, struct vm_area_struct *vma);
 static inline void ipipe_mute_pic(void) { }
 static inline void ipipe_unmute_pic(void) { }
 
-<<<<<<< HEAD
 #ifdef CONFIG_IPIPE_WANT_PREEMPTIBLE_SWITCH
 
 #define prepare_arch_switch(next)			\
@@ -287,8 +286,6 @@ static inline struct mm_struct *ipipe_get_active_mm(void)
 
 #endif /* !CONFIG_IPIPE_WANT_PREEMPTIBLE_SWITCH */
 
-=======
->>>>>>> ccb3d289b203d... ipipe: add out-of-band tick device
 static inline bool __ipipe_hrclock_ok(void)
 {
 	return __ipipe_hrclock_freq != 0;

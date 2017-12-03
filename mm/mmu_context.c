@@ -31,6 +31,7 @@ void use_mm(struct mm_struct *mm)
 	local_irq_disable();
 	ipipe_mm_switch_protect(flags);
 	active_mm = tsk->active_mm;
+	ipipe_mm_switch_protect(flags);
 	if (active_mm != mm) {
 		mmgrab(mm);
 		tsk->active_mm = mm;
