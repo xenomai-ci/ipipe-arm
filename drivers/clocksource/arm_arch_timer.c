@@ -838,7 +838,18 @@ static void __arch_timer_setup(unsigned type,
 			BUG();
 		}
 
-		clk->set_next_event = sne;
+		arch_timer_check_ool_workaround(ate_match_local_cap_id, NULL);
+#ifdef CONFIG_IPIPE
+		clk->ipipe_timer = raw_cpu_ptr(&arch_itimer);
+		if (arch_timer_mem_use_virtual) {
+			clk->ipipe_timer->irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
+			clk->ipipe_timer->ack = arch_itimer_ack_virt;
+		} else {
+			clk->ipipe_timer->irq = arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI];
+			clk->ipipe_timer->ack = arch_itimer_ack_phys;
+		}
+		clk->ipipe_timer->freq = arch_timer_rate;
+#endif
 	} else {
 		clk->features |= CLOCK_EVT_FEAT_DYNIRQ;
 		clk->name = "arch_mem_timer";
