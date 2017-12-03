@@ -26,19 +26,9 @@ static void __init timer_get_base_and_rate(struct device_node *np,
 	*base = of_iomap(np, 0);
 
 	if (!*base || of_address_to_resource(np, 0, &res))
-		panic("Unable to map regs for %pOFn", np);
+		panic("Unable to map regs for %s", np->name);
 
 	*phys = res.start;
-
-	/*
-	 * Reset the timer if the reset control is available, wiping
-	 * out the state the firmware may have left it
-	 */
-	rstc = of_reset_control_get(np, NULL);
-	if (!IS_ERR(rstc)) {
-		reset_control_assert(rstc);
-		reset_control_deassert(rstc);
-	}
 
 	/*
 	 * Not all implementations use a periphal clock, so don't panic
