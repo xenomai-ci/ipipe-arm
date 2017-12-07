@@ -53,7 +53,7 @@ config ARM
 	select HAVE_ARM_SMCCC if CPU_V7
 	select HAVE_EBPF_JIT if !CPU_ENDIAN_BE32
 	select HAVE_CC_STACKPROTECTOR
-	select HAVE_CONTEXT_TRACKING
+	select HAVE_CONTEXT_TRACKING if !IPIPE
 	select HAVE_C_RECORDMCOUNT
 	select HAVE_DEBUG_KMEMLEAK
 	select HAVE_DMA_API_DEBUG
@@ -1483,6 +1483,8 @@ config ARCH_NR_GPIO
 
 	  If unsure, leave the default value.
 
+source kernel/ipipe/Kconfig
+
 source kernel/Kconfig.preempt
 
 config HZ_FIXED
@@ -1757,6 +1759,7 @@ config ALIGNMENT_TRAP
 config UACCESS_WITH_MEMCPY
 	bool "Use kernel mem{cpy,set}() for {copy_to,clear}_user()"
 	depends on MMU
+	depends on !IPIPE
 	default y if CPU_FEROCEON
 	help
 	  Implement faster copy_to_user and clear_user methods for CPU
