@@ -892,6 +892,7 @@ int __ipipe_pin_vma(struct mm_struct *mm, struct vm_area_struct *vma)
 		gup_flags |= FOLL_WRITE;
 	len = DIV_ROUND_UP(vma->vm_end, PAGE_SIZE) - vma->vm_start/PAGE_SIZE;
 	ret = get_user_pages_locked(vma->vm_start, len, gup_flags, NULL, NULL);
+	
 	if (ret < 0)
 		return ret;
 	return ret == len ? 0 : -EFAULT;
