@@ -129,10 +129,8 @@ EXPORT_SYMBOL(zero_pfn);
 
 unsigned long highest_memmap_pfn __read_mostly;
 
-static inline void cow_user_page(struct page *dst,
-				 struct page *src,
-				 unsigned long va,
-				 struct vm_area_struct *vma);
+static bool cow_user_page(struct page *dst, struct page *src,
+			  struct vm_fault *vmf);
 
 /*
  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
@@ -951,7 +949,8 @@ out:
 static inline unsigned long
 copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 	     pte_t *dst_pte, pte_t *src_pte, struct vm_area_struct *vma,
-	     unsigned long addr, int *rss, struct page *uncow_page)
+	     unsigned long addr, int *rss, pmd_t *src_pmd,
+	     struct page *uncow_page)
 {
 	unsigned long vm_flags = vma->vm_flags;
 	pte_t pte = *src_pte;
@@ -1032,16 +1031,28 @@ copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 #ifdef CONFIG_IPIPE
 		if (uncow_page) {
 			struct page *old_page = vm_normal_page(vma, addr, pte);
-			cow_user_page(uncow_page, old_page, addr, vma);
-			pte = mk_pte(uncow_page, vma->vm_page_prot);
+			struct vm_fault vmf;
 
-			if (vm_flags & VM_SHARED)
-				pte = pte_mkclean(pte);
-			pte = pte_mkold(pte);
+			vmf.vma = vma;
+			vmf.address = addr;
+			vmf.orig_pte = pte;
+			vmf.pmd = src_pmd;
 
-			page_add_new_anon_rmap(uncow_page, vma, addr, false);
-			rss[!!PageAnon(uncow_page)]++;
-			goto out_set_pte;
+			if (cow_user_page(uncow_page, old_page, &vmf)) {
+				pte = mk_pte(uncow_page, vma->vm_page_prot);
+
+				if (vm_flags & VM_SHARED)
+					pte = pte_mkclean(pte);
+				pte = pte_mkold(pte);
+
+				page_add_new_anon_rmap(uncow_page, vma, addr,
+						       false);
+				rss[!!PageAnon(uncow_page)]++;
+				goto out_set_pte;
+			} else {
+				/* unexpected: source page no longer present */
+				WARN_ON_ONCE(1);
+			}
 		}
 #endif /* CONFIG_IPIPE */
 		ptep_set_wrprotect(src_mm, addr, src_pte);
@@ -1151,7 +1162,7 @@ again:
 		}
 #endif
 		entry.val = copy_one_pte(dst_mm, src_mm, dst_pte, src_pte,
-					 vma, addr, rss, uncow_page);
+					 vma, addr, rss, src_pmd, uncow_page);
 		uncow_page = NULL;
 		if (entry.val)
 			break;
@@ -2387,7 +2398,8 @@ static inline int pte_unmap_same(struct mm_struct *mm, pmd_t *pmd,
 	return same;
 }
 
-static inline void cow_user_page(struct page *dst, struct page *src, unsigned long va, struct vm_area_struct *vma)
+static bool cow_user_page(struct page *dst, struct page *src,
+			  struct vm_fault *vmf)
 {
 	debug_dma_assert_idle(src);
 
