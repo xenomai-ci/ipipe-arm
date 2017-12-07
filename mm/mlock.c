@@ -876,7 +876,7 @@ void user_shm_unlock(size_t size, struct user_struct *user)
 int __ipipe_pin_vma(struct mm_struct *mm, struct vm_area_struct *vma)
 {
 	unsigned int gup_flags = 0;
-	int ret, len;
+	int ret, write, len;
 
 	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
 		return 0;
@@ -890,8 +890,9 @@ int __ipipe_pin_vma(struct mm_struct *mm, struct vm_area_struct *vma)
 
 	if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
 		gup_flags |= FOLL_WRITE;
+	write = (vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE;
 	len = DIV_ROUND_UP(vma->vm_end, PAGE_SIZE) - vma->vm_start/PAGE_SIZE;
-	ret = get_user_pages_locked(vma->vm_start, len, gup_flags, NULL, NULL);
+	ret = get_user_pages(vma->vm_start, len, write, 0, NULL);
 	
 	if (ret < 0)
 		return ret;
