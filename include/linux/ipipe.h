@@ -32,6 +32,9 @@
 #include <asm/ptrace.h>
 #include <asm/ipipe.h>
 
+struct cpuidle_device;
+struct cpuidle_state;
+
 #ifdef CONFIG_IPIPE
 
 #include <linux/ipipe_domain.h>
@@ -414,6 +417,13 @@ void __ipipe_tracer_hrclock_initialized(void);
 int ipipe_get_domain_slope_hook(struct task_struct *prev,
 				struct task_struct *next);
 
+bool __ipipe_enter_cpuidle(void);
+
+bool ipipe_enter_cpuidle(struct cpuidle_device *dev,
+			 struct cpuidle_state *state);
+
+void ipipe_exit_cpuidle(void);
+
 #else	/* !CONFIG_IPIPE */
 
 #define __ipipe_root_p		1
@@ -444,8 +454,9 @@ static inline void ipipe_lock_irq(unsigned int irq) { }
 
 static inline void ipipe_unlock_irq(unsigned int irq) { }
 
-static inline int ipipe_handle_syscall(struct thread_info *ti,
-				       unsigned long nr, struct pt_regs *regs)
+static inline
+int ipipe_handle_syscall(struct thread_info *ti,
+			 unsigned long nr, struct pt_regs *regs)
 {
 	return 0;
 }
@@ -456,6 +467,20 @@ int ipipe_get_domain_slope_hook(struct task_struct *prev,
 {
 	return 0;
 }
+
+static inline bool __ipipe_enter_cpuidle(void)
+{
+	return true;
+}
+
+static inline
+bool ipipe_enter_cpuidle(struct cpuidle_device *dev,
+			 struct cpuidle_state *state)
+{
+	return true;
+}
+
+static inline void ipipe_exit_cpuidle(void) { }
 
 #endif	/* !CONFIG_IPIPE */
 
