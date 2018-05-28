@@ -65,13 +65,13 @@ static struct ipipe_timer bcm2835_itimer;
 
 static void bcm2835_itimer_ack(void)
 {
-	struct bcm2835_timer *timer = container_of(bcm2835_itimer.host_timer,
-							struct bcm2835_timer, evt);
-	writel(timer->match_mask, timer->control);
+        struct bcm2835_timer *timer = container_of(bcm2835_itimer.host_timer,
+                                                  struct bcm2835_timer, evt);
+        writel(timer->match_mask, timer->control);
 }
 
 static inline void bcm2835_ipipe_evt_setup(struct clock_event_device *evt,
-																int freq)
+                                                                      int freq)
 {
 	evt->ipipe_timer = &bcm2835_itimer;
 	evt->ipipe_timer->irq = evt->irq;
@@ -94,7 +94,7 @@ static int bcm2835_time_set_next_event(unsigned long event,
 {
 	struct bcm2835_timer *timer = container_of(evt_dev,
 		struct bcm2835_timer, evt);
-		writel_relaxed(readl_relaxed(system_clock) + event, timer->compare);
+        writel_relaxed(readl_relaxed(system_clock) + event, timer->compare);
 	return 0;
 }
 
@@ -103,12 +103,12 @@ static irqreturn_t bcm2835_time_interrupt(int irq, void *dev_id)
 	struct bcm2835_timer *timer = dev_id;
 	void (*event_handler)(struct clock_event_device *);
 
-	if (clockevent_ipipe_stolen(&timer->evt)) {
-		goto handle;
-	}
+        if (clockevent_ipipe_stolen(&timer->evt)) {
+                goto handle;
+        }
 	if (readl_relaxed(timer->control) & timer->match_mask) {
 		writel_relaxed(timer->match_mask, timer->control);
-		handle:
+        handle:
 		event_handler = READ_ONCE(timer->evt.event_handler);
 		if (event_handler)
 			event_handler(&timer->evt);
