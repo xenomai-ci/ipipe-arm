@@ -46,7 +46,7 @@ s64 atomic64_read(const atomic64_t *v)
 {
 	unsigned long flags;
 	ipipe_spinlock_t *lock = lock_addr(v);
-	s64 val;
+	long long val;
 
 	raw_spin_lock_irqsave(lock, flags);
 	val = v->counter;
@@ -83,7 +83,7 @@ s64 atomic64_##op##_return(s64 a, atomic64_t *v)			\
 {									\
 	unsigned long flags;						\
 	ipipe_spinlock_t *lock = lock_addr(v);				\
-	s64 val;							\
+	long long val;							\
 									\
 	raw_spin_lock_irqsave(lock, flags);				\
 	val = (v->counter c_op a);					\
@@ -97,7 +97,7 @@ s64 atomic64_fetch_##op(s64 a, atomic64_t *v)				\
 {									\
 	unsigned long flags;						\
 	ipipe_spinlock_t *lock = lock_addr(v);				\
-	s64 val;							\
+	long long val;							\
 									\
 	raw_spin_lock_irqsave(lock, flags);				\
 	val = v->counter;						\
@@ -134,7 +134,7 @@ s64 atomic64_dec_if_positive(atomic64_t *v)
 {
 	unsigned long flags;
 	ipipe_spinlock_t *lock = lock_addr(v);
-	s64 val;
+	long long val;
 
 	raw_spin_lock_irqsave(lock, flags);
 	val = v->counter - 1;
@@ -149,7 +149,7 @@ s64 atomic64_cmpxchg(atomic64_t *v, s64 o, s64 n)
 {
 	unsigned long flags;
 	ipipe_spinlock_t *lock = lock_addr(v);
-	s64 val;
+	long long val;
 
 	raw_spin_lock_irqsave(lock, flags);
 	val = v->counter;
@@ -164,7 +164,7 @@ s64 atomic64_xchg(atomic64_t *v, s64 new)
 {
 	unsigned long flags;
 	ipipe_spinlock_t *lock = lock_addr(v);
-	s64 val;
+	long long val;
 
 	raw_spin_lock_irqsave(lock, flags);
 	val = v->counter;
@@ -178,7 +178,7 @@ s64 atomic64_fetch_add_unless(atomic64_t *v, s64 a, s64 u)
 {
 	unsigned long flags;
 	ipipe_spinlock_t *lock = lock_addr(v);
-	s64 val;
+	long long val;
 
 	raw_spin_lock_irqsave(lock, flags);
 	val = v->counter;
