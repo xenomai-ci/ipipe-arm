@@ -191,8 +191,8 @@ static inline int irq_desc_has_action(struct irq_desc *desc)
 }
 
 irq_flow_handler_t
-__ipipe_setup_irq_desc(struct irq_desc *desc, irq_flow_handler_t handle,
-		int is_chained);
+__fixup_irq_handler(struct irq_desc *desc, irq_flow_handler_t handle,
+		    int is_chained);
 
 static inline int irq_has_action(unsigned int irq)
 {

@@ -1092,7 +1092,7 @@ static void __ipipe_ack_bad_irq(struct irq_desc *desc)
 }
 
 irq_flow_handler_t
-__ipipe_setup_irq_desc(struct irq_desc *desc, irq_flow_handler_t handle, int is_chained)
+__fixup_irq_handler(struct irq_desc *desc, irq_flow_handler_t handle, int is_chained)
 {
 	if (unlikely(handle == NULL)) {
 		desc->ipipe_ack = __ipipe_ack_bad_irq;
@@ -1157,6 +1157,7 @@ int ipipe_enable_irq(unsigned int irq)
 	if (desc == NULL)
 		return -EINVAL;
 
+
 	chip = irq_desc_get_chip(desc);
 
 	if (chip->irq_startup && (desc->istate & IPIPE_IRQS_NEEDS_STARTUP)) {
@@ -1184,7 +1185,6 @@ int ipipe_enable_irq(unsigned int irq)
 		chip->irq_enable(&desc->irq_data);
 	else
 		chip->irq_unmask(&desc->irq_data);
-
 	return 0;
 }
 EXPORT_SYMBOL_GPL(ipipe_enable_irq);
@@ -1192,13 +1192,13 @@ EXPORT_SYMBOL_GPL(ipipe_enable_irq);
 #else /* !CONFIG_IPIPE */
 
 irq_flow_handler_t
-__ipipe_setup_irq_desc(struct irq_desc *desc, irq_flow_handler_t handle, int is_chained)
+__fixup_irq_handler(struct irq_desc *desc, irq_flow_handler_t handle, int is_chained)
 {
 	return handle;
 }
 
 #endif /* !CONFIG_IPIPE */
-EXPORT_SYMBOL_GPL(__ipipe_setup_irq_desc);
+EXPORT_SYMBOL_GPL(__fixup_irq_handler);
 
 static void
 __irq_do_set_handler(struct irq_desc *desc, irq_flow_handler_t handle,
@@ -1234,7 +1234,7 @@ __irq_do_set_handler(struct irq_desc *desc, irq_flow_handler_t handle,
 			return;
 	}
 
-	handle = __ipipe_setup_irq_desc(desc, handle, is_chained);
+	handle = __fixup_irq_handler(desc, handle, is_chained);
 
 	/* Uninstall? */
 	if (handle == handle_bad_irq) {

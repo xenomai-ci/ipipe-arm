@@ -2,7 +2,10 @@
  * include/linux/ipipe.h
  *
  * Copyright (C) 2002-2014 Philippe Gerum.
+<<<<<<< HEAD
  *               2007 Jan Kiszka.
+=======
+>>>>>>> 9f40f55650338... genirq: add generic I-pipe core
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +31,7 @@
 #include <linux/percpu.h>
 #include <linux/irq.h>
 #include <linux/thread_info.h>
+#include <linux/ipipe_base.h>
 #include <linux/ipipe_debug.h>
 #include <asm/ptrace.h>
 #ifdef CONFIG_HAVE_IPIPE_SUPPORT
