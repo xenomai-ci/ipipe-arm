@@ -1765,7 +1765,6 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
 	}
 
 	__ipipe_report_setaffinity(p, dest_cpu);
-
 	if (task_running(rq, p) || p->state == TASK_WAKING) {
 		struct migration_arg arg = { p, dest_cpu };
 		/* Need help from migration thread: drop lock and wait. */
