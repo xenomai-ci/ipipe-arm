@@ -192,7 +192,7 @@ ENDPROC(__und_invalid)
 	uaccess_entry tsk, r0, r1, r2, \uaccess
 
 	.if \trace
-#ifdef CONFIG_TRACE_IRQFLAGS
+#if defined(CONFIG_TRACE_IRQFLAGS) && !defined(CONFIG_IPIPE)
 	bl	trace_hardirqs_off
 #endif
 #ifdef CONFIG_IPIPE_TRACE_IRQSOFF
@@ -800,7 +800,7 @@ ENTRY(ret_from_exception)
  UNWIND(.fnstart	)
  UNWIND(.cantunwind	)
 #ifdef CONFIG_IPIPE
-	disable_irq
+	disable_irq_notrace
 	get_thread_info tsk
 	ldr	r0, [tsk, #TI_IPIPE]
 	tst	r0, #_TIP_HEAD
