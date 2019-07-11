@@ -16,6 +16,7 @@
 #include <linux/build_bug.h>
 #include <asm/byteorder.h>
 #include <asm/div64.h>
+#include <asm-generic/ipipe.h>
 #include <uapi/linux/kernel.h>
 #include <asm/div64.h>
 
