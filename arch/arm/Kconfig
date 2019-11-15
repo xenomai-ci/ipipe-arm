@@ -917,7 +917,6 @@ config IPIPE_ARM_KUSER_TSC
        select HAVE_IPIPE_TRACER_SUPPORT
        select GENERIC_TIME_VSYSCALL
        select IPIPE_HAVE_HOSTRT if IPIPE
-       default y if ARM_TIMER_SP804 || ARCH_MXC || ARCH_OMAP
 endif
 
 source "arch/arm/firmware/Kconfig"
