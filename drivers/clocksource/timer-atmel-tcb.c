@@ -353,6 +353,18 @@ static const struct of_device_id atmel_tcb_of_match[] = {
 	{ /* sentinel */ }
 };
 
+
+#ifdef CONFIG_IPIPE
+static struct __ipipe_tscinfo tsc_info = {
+       .type = IPIPE_TSC_TYPE_FREERUNNING,
+       .u = {
+               {
+                       .mask = 0xffffffffU,
+               },
+       },
+};
+#endif /* CONFIG_IPIPE */
+
 static int __init tcb_clksrc_init(struct device_node *node)
 {
 	struct atmel_tc tc;
@@ -488,7 +500,6 @@ err_disable_t0:
 	clk_disable_unprepare(t0_clk);
 
 	tcaddr = NULL;
-
 	return ret;
 }
 TIMER_OF_DECLARE(atmel_tcb_clksrc, "atmel,tcb-timer", tcb_clksrc_init);
