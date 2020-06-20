@@ -16,7 +16,6 @@
 #include <linux/syscore_ops.h>
 #include <soc/at91/atmel_tcb.h>
 
-
 /*
  * We're configured to use a specific TC block, one that's not hooked
  * up to external hardware, to provide a time solution:
