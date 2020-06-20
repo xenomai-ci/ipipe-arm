@@ -348,10 +348,21 @@ static void __init tcb_setup_single_chan(struct atmel_tc *tc, int mck_divisor_id
 static const u8 atmel_tcb_divisors[5] = { 2, 8, 32, 128, 0, };
 
 static const struct of_device_id atmel_tcb_of_match[] = {
-	{ .compatible = "atmel,at91rm9200-tcb", .data = (void *)16, },
-	{ .compatible = "atmel,at91sam9x5-tcb", .data = (void *)32, },
-	{ /* sentinel */ }
+       { .compatible = "atmel,at91rm9200-tcb", .data = (void *)16, },
+       { .compatible = "atmel,at91sam9x5-tcb", .data = (void *)32, },
+       { /* sentinel */ }
 };
+
+#ifdef CONFIG_IPIPE
+static struct __ipipe_tscinfo tsc_info = {
+       .type = IPIPE_TSC_TYPE_FREERUNNING,
+       .u = {
+               {
+                       .mask = 0xffffffffU,
+               },
+       },
+};
+#endif /* CONFIG_IPIPE */
 
 static int __init tcb_clksrc_init(struct device_node *node)
 {
@@ -403,6 +414,45 @@ static int __init tcb_clksrc_init(struct device_node *node)
 	for (i = 0; i < ARRAY_SIZE(tc.irq); i++)
 		writel(ATMEL_TC_ALL_IRQ, tc.regs + ATMEL_TC_REG(i, IDR));
 
+=======
+        /* Protect against multiple calls */
+        if (tcaddr)
+               return 0;
+
+       tc.regs = of_iomap(node->parent, 0);
+       if (!tc.regs)
+               return -ENXIO;
+
+       t0_clk = of_clk_get_by_name(node->parent, "t0_clk");
+       if (IS_ERR(t0_clk))
+               return PTR_ERR(t0_clk);
+
+       tc.slow_clk = of_clk_get_by_name(node->parent, "slow_clk");
+       if (IS_ERR(tc.slow_clk))
+               return PTR_ERR(tc.slow_clk);
+
+       tc.clk[0] = t0_clk;
+       tc.clk[1] = of_clk_get_by_name(node->parent, "t1_clk");
+       if (IS_ERR(tc.clk[1]))
+               tc.clk[1] = t0_clk;
+       tc.clk[2] = of_clk_get_by_name(node->parent, "t2_clk");
+       if (IS_ERR(tc.clk[2]))
+               tc.clk[2] = t0_clk;
+
+       tc.irq[2] = of_irq_get(node->parent, 2);
+       if (tc.irq[2] <= 0) {
+               tc.irq[2] = of_irq_get(node->parent, 0);
+               if (tc.irq[2] <= 0)
+                       return -EINVAL;
+       }
+
+       match = of_match_node(atmel_tcb_of_match, node->parent);
+       bits = (uintptr_t)match->data;
+
+       for (i = 0; i < ARRAY_SIZE(tc.irq); i++)
+               writel(ATMEL_TC_ALL_IRQ, tc.regs + ATMEL_TC_REG(i, IDR));
+
+>>>>>>> 9922451fb3b55... atmel_tclib is probed too late in the boot process to be able to use the:drivers/clocksource/tcb_clksrc.c
 	ret = clk_prepare_enable(t0_clk);
 	if (ret) {
 		pr_debug("can't enable T0 clk\n");
@@ -431,10 +481,10 @@ static int __init tcb_clksrc_init(struct device_node *node)
 		best_divisor_idx = i;
 	}
 
-	clksrc.name = kbasename(node->parent->full_name);
-	clkevt.clkevt.name = kbasename(node->parent->full_name);
-	pr_debug("%s at %d.%03d MHz\n", clksrc.name, divided_rate / 1000000,
-			((divided_rate % 1000000) + 500) / 1000);
+        clksrc.name = kbasename(node->parent->full_name);
+        clkevt.clkevt.name = kbasename(node->parent->full_name);
+        pr_debug("%s at %d.%03d MHz\n", clksrc.name, divided_rate / 1000000,
+                        ((divided_rate % 1000000) + 500) / 1000);
 
 	tcaddr = tc.regs;
 
@@ -488,7 +538,6 @@ err_disable_t0:
 	clk_disable_unprepare(t0_clk);
 
 	tcaddr = NULL;
-
 	return ret;
 }
 TIMER_OF_DECLARE(atmel_tcb_clksrc, "atmel,tcb-timer", tcb_clksrc_init);
