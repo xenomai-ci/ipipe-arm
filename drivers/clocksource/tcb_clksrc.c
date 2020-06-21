@@ -23,9 +23,9 @@
  *     with a base rate of 5+ MHz, packaged as a clocksource (with
  *     resolution better than 200 nsec).
  *   - Some chips support 32 bit counter. A single channel is used for
- *     this 32 bit free-running counter. the second channel is not used.
+ *     this 32 bit free-running counter. The second channel is not used.
  *
- *   - The third channel may be used to provide a 16-bit clockevent
+ *   - The third channel may be used to provide a 16-bit or 32-bit clockevent
  *     source, used in either periodic or oneshot mode.
  *
  * REVISIT behavior during system suspend states... we should disable
@@ -241,7 +241,8 @@ static irqreturn_t ch2_irq(int irq, void *handle)
 	return IRQ_NONE;
 }
 
-static int __init setup_clkevents(struct atmel_tc *tc, int divisor_idx)
+static int __init setup_clkevents(struct atmel_tc *tc, int divisor_idx,
+					unsigned long max_delta)
 {
         unsigned divisor = atmel_tcb_divisors[divisor_idx];
 	int ret;
@@ -279,14 +280,16 @@ static int __init setup_clkevents(struct atmel_tc *tc, int divisor_idx)
 		return ret;
 	}
 
-	clockevents_config_and_register(&clkevt.clkevt, clkevt.freq, 1, 0xffff);
+	clockevents_config_and_register(&clkevt.clkevt, clkevt.freq, 1, 
+					max_delta);
 
 	return ret;
 }
 
 #else /* !CONFIG_GENERIC_CLOCKEVENTS */
 
-static int __init setup_clkevents(struct atmel_tc *tc, int clk32k_divisor_idx)
+static int __init setup_clkevents(struct atmel_tc *tc, int clk32k_divisor_idx,
+					unsigned long max_delta);
 {
 	/* NOTHING */
 	return 0;
@@ -360,8 +363,9 @@ static int __init tcb_clksrc_init(struct device_node *node)
 	const struct of_device_id *match;
 	u64 (*tc_sched_clock)(void);
 	u32 rate, divided_rate = 0;
+	unsigned long clkevt_max_delta = 0xffff;
 	int best_divisor_idx = -1;
-	int clk32k_divisor_idx = -1;
+	int clkevt_divisor_idx = -1;
 	int bits;
 	int i;
 	int ret;
@@ -417,7 +421,7 @@ static int __init tcb_clksrc_init(struct device_node *node)
 
 		/* remember 32 KiHz clock for later */
 		if (!divisor) {
-			clk32k_divisor_idx = i;
+			clkevt_divisor_idx = i;
 			continue;
 		}
 
@@ -444,6 +448,10 @@ static int __init tcb_clksrc_init(struct device_node *node)
 		/* setup ony channel 0 */
 		tcb_setup_single_chan(&tc, best_divisor_idx);
 		tc_sched_clock = tc_sched_clock_read32;
+                /* use 32-bit clkevt */
+                clkevt_max_delta = 0xffffffff;
+                /* use only high res clkevt when 32-bit*/
+                clkevt_divisor_idx = best_divisor_idx;
 	} else {
 		/* we have three clocks no matter what the
 		 * underlying platform supports.
@@ -456,6 +464,12 @@ static int __init tcb_clksrc_init(struct device_node *node)
 		/* setup both channel 0 & 1 */
 		tcb_setup_dual_chan(&tc, best_divisor_idx);
 		tc_sched_clock = tc_sched_clock_read;
+
+#ifndef CONFIG_ATMEL_TCB_CLKSRC_USE_SLOW_CLOCK
+                /* use high res clkevt */
+                clkevt_divisor_idx = best_divisor_idx;
+#endif
+
 	}
 
 	/* and away we go! */
@@ -464,11 +478,7 @@ static int __init tcb_clksrc_init(struct device_node *node)
 		goto err_disable_t1;
 
 	/* channel 2:  periodic and oneshot timer support */
-#ifdef CONFIG_ATMEL_TCB_CLKSRC_USE_SLOW_CLOCK
-        ret = setup_clkevents(&tc, clk32k_divisor_idx);
-#else
-        ret = setup_clkevents(&tc, best_divisor_idx);
-#endif
+	ret = setup_clkevents(&tc, clkevt_divisor_idx, clkevt_max_delta);
 	if (ret)
 		goto err_unregister_clksrc;
 
