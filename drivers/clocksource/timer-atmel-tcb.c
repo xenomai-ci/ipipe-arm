@@ -117,7 +117,7 @@ static struct clocksource clksrc = {
 
 static u64 notrace tc_sched_clock_read(void)
 {
-	return tc_get_cycles(&clksrc);
+       return tc_get_cycles(&clksrc);
 }
 
 static u64 notrace tc_sched_clock_read32(void)
