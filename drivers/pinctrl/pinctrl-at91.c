@@ -1600,8 +1600,9 @@ static void gpio_irq_handler(struct irq_desc *desc)
 		}
 
 		for_each_set_bit(n, &isr, BITS_PER_LONG) {
-			generic_handle_irq(irq_find_mapping(
-					   gpio_chip->irq.domain, n));
+			ipipe_handle_demuxed_irq(irq_find_mapping(
+                                        gpio_chip->irq.domain, n));
+
 		}
 	}
 	chained_irq_exit(chip, desc);
@@ -1630,6 +1631,8 @@ static int at91_gpio_of_irq_setup(struct platform_device *pdev,
 	gpio_irqchip->irq_unmask = gpio_irq_unmask;
 	gpio_irqchip->irq_set_wake = gpio_irq_set_wake,
 	gpio_irqchip->irq_set_type = at91_gpio->ops->irq_type;
+	gpio_irqchip->flags	   = IRQCHIP_PIPELINE_SAFE;
+
 
 	/* Disable irqs of this PIO controller */
 	writel_relaxed(~0, at91_gpio->regbase + PIO_IDR);
