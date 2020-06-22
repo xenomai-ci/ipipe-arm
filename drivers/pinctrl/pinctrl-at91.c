@@ -1582,6 +1582,7 @@ static struct irq_chip gpio_irqchip = {
 	.irq_unmask	= gpio_irq_unmask,
 	/* .irq_set_type is set dynamically */
 	.irq_set_wake	= gpio_irq_set_wake,
+	.flags		= IRQCHIP_PIPELINE_SAFE,
 };
 
 static void gpio_irq_handler(struct irq_desc *desc)
@@ -1610,8 +1611,9 @@ static void gpio_irq_handler(struct irq_desc *desc)
 		}
 
 		for_each_set_bit(n, &isr, BITS_PER_LONG) {
-			generic_handle_irq(irq_find_mapping(
-					   gpio_chip->irq.domain, n));
+			ipipe_handle_demuxed_irq(irq_find_mapping(
+                                        gpio_chip->irq.domain, n));
+
 		}
 	}
 	chained_irq_exit(chip, desc);
