@@ -15,6 +15,9 @@
 #include <linux/syscore_ops.h>
 #include <soc/at91/atmel_tcb.h>
 
+#include <linux/ipipe.h>
+#include <linux/ipipe_tickdev.h>
+
 /*
  * We're configured to use a specific TC block, one that's not hooked
  * up to external hardware, to provide a time solution:
@@ -227,18 +230,26 @@ static struct tc_clkevt_device clkevt = {
 	},
 };
 
+static void tcb_clkevt_ack(void)
+{
+       readl_relaxed(tcaddr + ATMEL_TC_REG(2, SR));
+}
+
+#ifdef CONFIG_IPIPE
+static struct ipipe_timer tcb_itimer = {
+       .ack = tcb_clkevt_ack,
+};
+#endif /* CONFIG_IPIPE */
+
 static irqreturn_t ch2_irq(int irq, void *handle)
 {
 	struct tc_clkevt_device	*dev = handle;
-	unsigned int		sr;
 
-	sr = readl_relaxed(dev->regs + ATMEL_TC_REG(2, SR));
-	if (sr & ATMEL_TC_CPCS) {
-		dev->clkevt.event_handler(&dev->clkevt);
-		return IRQ_HANDLED;
-	}
+        if (!clockevent_ipipe_stolen(&dev->clkevt))
+                tcb_clkevt_ack();
 
-	return IRQ_NONE;
+        dev->clkevt.event_handler(&dev->clkevt);
+        return IRQ_HANDLED;
 }
 
 static int __init setup_clkevents(struct atmel_tc *tc, int divisor_idx,
@@ -279,6 +290,15 @@ static int __init setup_clkevents(struct atmel_tc *tc, int divisor_idx,
 		clk_disable_unprepare(tc->slow_clk);
 		return ret;
 	}
+
+#ifdef CONFIG_IPIPE
+        tcb_itimer.irq = irq;
+        /* TCB clkevt oneshot timer always stops before reprogrammed */
+        /* no need for extra ticks */
+        tcb_itimer.min_delay_ticks = 1;
+        clkevt.clkevt.ipipe_timer = &tcb_itimer;
+#endif /* CONFIG_IPIPE */
+
 
 	clockevents_config_and_register(&clkevt.clkevt, clkevt.freq, 1, 
 					max_delta);
@@ -361,6 +381,7 @@ static int __init tcb_clksrc_init(struct device_node *node)
 	struct atmel_tc tc;
 	struct clk *t0_clk;
 	const struct of_device_id *match;
+	struct resource r;
 	u64 (*tc_sched_clock)(void);
 	u32 rate, divided_rate = 0;
 	unsigned long clkevt_max_delta = 0xffff;
@@ -376,6 +397,9 @@ static int __init tcb_clksrc_init(struct device_node *node)
 
        tc.regs = of_iomap(node->parent, 0);
        if (!tc.regs)
+               return -ENXIO;
+
+       if (of_address_to_resource(node->parent, 0, &r))
                return -ENXIO;
 
        t0_clk = of_clk_get_by_name(node->parent, "t0_clk");
@@ -483,6 +507,14 @@ static int __init tcb_clksrc_init(struct device_node *node)
 		goto err_unregister_clksrc;
 
 	sched_clock_register(tc_sched_clock, 32, divided_rate);
+
+#ifdef CONFIG_IPIPE
+        tsc_info.counter_vaddr =
+                (unsigned long)(tcaddr + ATMEL_TC_REG(0, CV));
+        tsc_info.u.counter_paddr = (r.start + ATMEL_TC_REG(0, CV));
+        tsc_info.freq = divided_rate;
+        __ipipe_tsc_register(&tsc_info);
+#endif
 
 	return 0;
 
