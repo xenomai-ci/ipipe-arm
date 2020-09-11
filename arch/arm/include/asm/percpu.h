@@ -15,6 +15,8 @@
  */
 #ifndef _ASM_ARM_PERCPU_H_
 #define _ASM_ARM_PERCPU_H_
+#include <asm/thread_info.h>
+#include <asm/ipipe_base.h>
 
 #include <asm/ipipe_base.h>
 
