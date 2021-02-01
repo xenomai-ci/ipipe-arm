@@ -1473,7 +1473,12 @@ static int omap_gpio_probe(struct platform_device *pdev)
 	irqc->irq_shutdown = omap_gpio_irq_shutdown,
 	irqc->irq_ack = dummy_irq_chip.irq_ack,
 	irqc->irq_mask = omap_gpio_mask_irq,
+	irqc->irq_mask_ack = omap_gpio_mask_ack_irq,
 	irqc->irq_unmask = omap_gpio_unmask_irq,
+#ifdef CONFIG_IPIPE
+	irqc->irq_hold = omap_gpio_irq_hold,
+	irqc->irq_release = omap_gpio_irq_release,
+#endif
 	irqc->irq_set_type = omap_gpio_irq_type,
 	irqc->irq_set_wake = omap_gpio_wake_enable,
 	irqc->irq_bus_lock = omap_gpio_irq_bus_lock,
