@@ -131,6 +131,8 @@ static void twd_timer_stop(void)
 	disable_percpu_irq(clk->irq);
 }
 
+#ifdef CONFIG_COMMON_CLK
+
 /*
  * Updates clockevent frequency when the cpu frequency changes.
  * Called on the cpu that is changing frequency with interrupts disabled.

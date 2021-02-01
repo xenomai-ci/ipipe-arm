@@ -239,7 +239,7 @@ static __init int cpufreq_transition_handler(struct notifier_block *nb,
 	    ipipe_tsc_value && tsc_info.refresh_freq) {
 		freq = tsc_info.refresh_freq();
 		if (freq) {
-			if (freqs->cpu == 0) {
+			if (freqs->policy->cpu == 0) {
 				int oldrate;
 				tsc_info.freq = freq;
 				__ipipe_tsc_register(&tsc_info);
@@ -249,7 +249,7 @@ static __init int cpufreq_transition_handler(struct notifier_block *nb,
 				clocksource_change_rating(&clksrc, 0);
 				clocksource_change_rating(&clksrc, oldrate);
 			}
-			smp_call_function_single(freqs->cpu, update_timer_freq,
+			smp_call_function_single(freqs->policy->cpu, update_timer_freq,
 						 &freq, 1);
 		}
 	}
