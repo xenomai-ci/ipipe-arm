@@ -143,11 +143,6 @@ EXPORT_SYMBOL(zero_pfn);
 
 unsigned long highest_memmap_pfn __read_mostly;
 
-static inline void cow_user_page(struct page *dst,
-				 struct page *src,
-				 unsigned long va,
-				 struct vm_area_struct *vma);
-
 /*
  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
  */
@@ -773,21 +768,6 @@ copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 	 * in the parent and the child
 	 */
 	if (is_cow_mapping(vm_flags) && pte_write(pte)) {
-#ifdef CONFIG_IPIPE
-		if (uncow_page) {
-			struct page *old_page = vm_normal_page(vma, addr, pte);
-			cow_user_page(uncow_page, old_page, addr, vma);
-			pte = mk_pte(uncow_page, vma->vm_page_prot);
-
-			if (vm_flags & VM_SHARED)
-				pte = pte_mkclean(pte);
-			pte = pte_mkold(pte);
-
-			page_add_new_anon_rmap(uncow_page, vma, addr, false);
-			rss[!!PageAnon(uncow_page)]++;
-			goto out_set_pte;
-		}
-#endif /* CONFIG_IPIPE */
 		ptep_set_wrprotect(src_mm, addr, src_pte);
 		pte = pte_wrprotect(pte);
 	}
