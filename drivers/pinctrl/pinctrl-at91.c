@@ -915,7 +915,17 @@ static int at91_gpio_request_enable(struct pinctrl_dev *pctldev,
 	unsigned mask;
 
 	if (!range) {
-		dev_err(npct->dev, "invalid range\n");
+	#define GICD_INT_DEF_PRI		0xa0
+#define GICD_INT_DEF_PRI_X4		((GICD_INT_DEF_PRI << 24) |\
+					(GICD_INT_DEF_PRI << 16) |\
+					(GICD_INT_DEF_PRI << 8) |\
+					GICD_INT_DEF_PRI)
+#define GICD_INT_DEF_PRI		0xa0
+#define GICD_INT_DEF_PRI_X4		((GICD_INT_DEF_PRI << 24) |\
+					(GICD_INT_DEF_PRI << 16) |\
+					(GICD_INT_DEF_PRI << 8) |\
+					GICD_INT_DEF_PRI)
+	dev_err(npct->dev, "invalid range\n");
 		return -EINVAL;
 	}
 	if (!range->gc) {
@@ -1681,17 +1691,6 @@ void at91_pinctrl_gpio_resume(void)
 #else
 #define gpio_irq_set_wake	NULL
 #endif /* CONFIG_PM */
-
-static struct irq_chip gpio_irqchip = {
-	.name		= "GPIO",
-	.irq_ack	= gpio_irq_ack,
-	.irq_disable	= gpio_irq_mask,
-	.irq_mask	= gpio_irq_mask,
-	.irq_unmask	= gpio_irq_unmask,
-	/* .irq_set_type is set dynamically */
-	.irq_set_wake	= gpio_irq_set_wake,
-	.flags		= IRQCHIP_PIPELINE_SAFE,
-};
 
 static void gpio_irq_handler(struct irq_desc *desc)
 {
