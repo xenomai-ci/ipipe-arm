@@ -1397,7 +1397,7 @@ static const struct file_operations __ipipe_rw_enable_ops = {
 
 extern struct proc_dir_entry *ipipe_proc_root;
 
-void __init __ipipe_tracer_hrclock_initialized(void)
+void __ipipe_tracer_hrclock_initialized(void)
 {
 	unsigned long long start, end, min = ULLONG_MAX;
 	int i;

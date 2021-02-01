@@ -2032,29 +2032,6 @@ asmlinkage int vprintk_emit(int facility, int level,
 }
 EXPORT_SYMBOL(vprintk_emit);
 
-asmlinkage int vprintk(const char *fmt, va_list args)
-{
-	return vprintk_func(fmt, args);
-}
-EXPORT_SYMBOL(vprintk);
-
-int vprintk_default(const char *fmt, va_list args)
-{
-	int r;
-
-#ifdef CONFIG_KGDB_KDB
-	/* Allow to pass printk() to kdb but avoid a recursion. */
-	if (unlikely(kdb_trap_printk && kdb_printf_cpu < 0)) {
-		r = vkdb_printf(KDB_MSGSRC_PRINTK, fmt, args);
-		return r;
-	}
-#endif
-	r = vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
-
-	return r;
-}
-EXPORT_SYMBOL_GPL(vprintk_default);
-
 #ifdef CONFIG_IPIPE
 
 extern int __ipipe_printk_bypass;
