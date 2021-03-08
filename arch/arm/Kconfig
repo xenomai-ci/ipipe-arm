@@ -814,8 +814,6 @@ config IPIPE_ARM_KUSER_TSC
        select IPIPE_HAVE_HOSTRT if IPIPE
 endif
 
-source "arch/arm/firmware/Kconfig"
-
 source "arch/arm/mm/Kconfig"
 
 config IWMMXT

@@ -7,7 +7,7 @@ config IPIPE
 	bool "Interrupt pipeline"
 	depends on HAVE_IPIPE_SUPPORT
 	default n
-	---help---kernel/ipipe/Kconfig
+	---help---
 	  Activate this option if you want the interrupt pipeline to be
 	  compiled in.
 
