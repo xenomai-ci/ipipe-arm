@@ -459,7 +459,7 @@ retry:
 			SEGV_ACCERR : SEGV_MAPERR;
 	}
 
-	__do_user_fault(tsk, addr, fsr, sig, code, regs);
+	__do_user_fault(addr, fsr, sig, code, regs);
 	goto out;
 
 no_context:
@@ -661,15 +661,11 @@ do_DataAbort(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	pr_alert("8<--- cut here ---\n");
 	pr_alert("Unhandled fault: %s (0x%03x) at 0x%08lx\n",
 		inf->name, fsr, addr);
-	show_pte(current->mm, addr);
+	show_pte(KERN_ALERT, current->mm, addr);
 
-	clear_siginfo(&info);
-	info.si_signo = inf->sig;
-	info.si_errno = 0;
-	info.si_code  = inf->code;
-	info.si_addr  = (void __user *)addr;
-	arm_notify_die("", regs, &info, fsr, 0);
-
+	arm_notify_die("", regs, inf->sig, inf->code, (void __user *)addr,
+		       fsr, 0);
+	
 	fault_exit(irqflags);
 }
 
@@ -703,14 +699,9 @@ do_PrefetchAbort(unsigned long addr, unsigned int ifsr, struct pt_regs *regs)
 
 	pr_alert("Unhandled prefetch abort: %s (0x%03x) at 0x%08lx\n",
 		inf->name, ifsr, addr);
-
-	clear_siginfo(&info);
-	info.si_signo = inf->sig;
-	info.si_errno = 0;
-	info.si_code  = inf->code;
-	info.si_addr  = (void __user *)addr;
-	arm_notify_die("", regs, &info, ifsr, 0);
-
+	
+	arm_notify_die("", regs, inf->sig, inf->code, (void __user *)addr,
+		       ifsr, 0);
 	fault_exit(irqflags);
 }
 

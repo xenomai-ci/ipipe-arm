@@ -441,48 +441,6 @@ static int __init tcb_clksrc_init(struct device_node *node)
 	for (i = 0; i < ARRAY_SIZE(tc.irq); i++)
 		writel(ATMEL_TC_ALL_IRQ, tc.regs + ATMEL_TC_REG(i, IDR));
 
-=======
-        /* Protect against multiple calls */
-        if (tcaddr)
-               return 0;
-
-       tc.regs = of_iomap(node->parent, 0);
-       if (!tc.regs)
-               return -ENXIO;
-
-       if (of_address_to_resource(node->parent, 0, &r))
-               return -ENXIO;
-
-       t0_clk = of_clk_get_by_name(node->parent, "t0_clk");
-       if (IS_ERR(t0_clk))
-               return PTR_ERR(t0_clk);
-
-       tc.slow_clk = of_clk_get_by_name(node->parent, "slow_clk");
-       if (IS_ERR(tc.slow_clk))
-               return PTR_ERR(tc.slow_clk);
-
-       tc.clk[0] = t0_clk;
-       tc.clk[1] = of_clk_get_by_name(node->parent, "t1_clk");
-       if (IS_ERR(tc.clk[1]))
-               tc.clk[1] = t0_clk;
-       tc.clk[2] = of_clk_get_by_name(node->parent, "t2_clk");
-       if (IS_ERR(tc.clk[2]))
-               tc.clk[2] = t0_clk;
-
-       tc.irq[2] = of_irq_get(node->parent, 2);
-       if (tc.irq[2] <= 0) {
-               tc.irq[2] = of_irq_get(node->parent, 0);
-               if (tc.irq[2] <= 0)
-                       return -EINVAL;
-       }
-
-       match = of_match_node(atmel_tcb_of_match, node->parent);
-       bits = (uintptr_t)match->data;
-
-       for (i = 0; i < ARRAY_SIZE(tc.irq); i++)
-               writel(ATMEL_TC_ALL_IRQ, tc.regs + ATMEL_TC_REG(i, IDR));
-
->>>>>>> 9922451fb3b55... atmel_tclib is probed too late in the boot process to be able to use the:drivers/clocksource/tcb_clksrc.c
 	ret = clk_prepare_enable(t0_clk);
 	if (ret) {
 		pr_debug("can't enable T0 clk\n");
