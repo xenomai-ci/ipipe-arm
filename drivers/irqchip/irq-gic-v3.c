@@ -695,7 +695,7 @@ static asmlinkage void __exception_irq_entry gic_handle_irq(struct pt_regs *regs
 		 * that any shared data read by handle_IPI will
 		 * be read after the ACK.
 		 */
-		pipe_handle_multi_ipi(irqnr, regs);
+		ipipe_handle_multi_ipi(irqnr, regs);
 #else
 		WARN_ONCE(true, "Unexpected SGI received!\n");
 #endif
