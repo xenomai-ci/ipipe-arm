@@ -575,10 +575,6 @@ static void __omap_gpio_irq_handler(struct gpio_bank *bank)
 		return;
 
 
-	if (WARN_ONCE(!pm_runtime_active(bank->chip.parent),
-		      "gpio irq%i while runtime suspended?\n", irq))
-		return IRQ_NONE;
-
 	while (1) {
 		raw_spin_lock_irqsave(&bank->lock, lock_flags);
 
@@ -643,6 +639,10 @@ static void omap_gpio_irq_handler(struct irq_desc *d)
 static irqreturn_t omap_gpio_irq_handler(int irq, void *gpiobank)
 {
 	struct gpio_bank *bank = gpiobank;
+
+	if (WARN_ONCE(!pm_runtime_active(bank->chip.parent),
+		      "gpio irq%i while runtime suspended?\n", irq))
+		return IRQ_NONE;
 
 	pm_runtime_get_sync(bank->chip.parent);
 	__omap_gpio_irq_handler(bank);
@@ -1479,6 +1479,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
 	irqc->irq_mask = omap_gpio_mask_irq,
 	irqc->irq_mask_ack = omap_gpio_mask_ack_irq,
 	irqc->irq_unmask = omap_gpio_unmask_irq,
+#ifdef CONFIG_IPIPE
+	irqc->irq_hold = omap_gpio_irq_hold,
+	irqc->irq_release = omap_gpio_irq_release,
+#endif
 	irqc->irq_set_type = omap_gpio_irq_type,
 	irqc->irq_set_wake = omap_gpio_wake_enable,
 	irqc->irq_bus_lock = omap_gpio_irq_bus_lock,
