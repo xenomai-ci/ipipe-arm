@@ -210,7 +210,7 @@ static int break_trap(struct pt_regs *regs, unsigned int instr)
 	if (__ipipe_report_trap(IPIPE_TRAP_BREAK,regs))
 		return 0;
 
-	ptrace_break(current, regs);
+	ptrace_break(regs);
 	return 0;
 }
 
