@@ -617,9 +617,6 @@ void ipipe_update_hostrt(struct timekeeper *tk)
 	struct ipipe_hostrt_data data;
 	struct timespec xt;
 
-	if (clock != &__ipipe_hostrt_clock)
-		return;
-
 	xt.tv_sec = tk->xtime_sec;
 	xt.tv_nsec = (long)(tkr->xtime_nsec >> tkr->shift);
 	ipipe_root_only();
