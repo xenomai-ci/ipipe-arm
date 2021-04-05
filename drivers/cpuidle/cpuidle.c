@@ -219,15 +219,6 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 	}
 
 	/*
-	 * A co-kernel running on the head stage of the IRQ pipeline
-	 * may deny this switch.
-	 */
-	if (!ipipe_enter_cpuidle(dev, target_state)) {
-		ipipe_exit_cpuidle();
-		return -EBUSY;
-	}
-
-	/*
 	 * Tell the time framework to switch to a broadcast timer because our
 	 * local timer will be shut down.  If a local timer is used from another
 	 * CPU as a broadcast timer, this call may fail if it is not available.
@@ -317,8 +308,6 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 	} else {
 		dev->last_residency = 0;
 	}
-
-	ipipe_exit_cpuidle();
 
 	return entered_state;
 }
