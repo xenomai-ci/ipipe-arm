@@ -79,7 +79,7 @@ static inline void gt_ipipe_cs_setup(void)
 		.u = {
 			{
 				.counter_paddr = gt_pbase,
-				.mask = 0xffffffff,
+				.mask = CLOCKSOURCE_MASK(64),
 			}
 		},
 		.refresh_freq = refresh_gt_freq,
