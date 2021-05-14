@@ -199,7 +199,7 @@ void __ipipe_tsc_update(void)
 
 	/* Update last_tsc, in order to remain compatible with legacy
 	   user-space 32 bits free-running counter implementation */
-	ipipe_tsc_value->last_tsc = __ipipe_tsc_get() - 1;
+	WRITE_ONCE(ipipe_tsc_value->last_tsc, __ipipe_tsc_get() - 1);
 }
 EXPORT_SYMBOL(__ipipe_tsc_get);
 
