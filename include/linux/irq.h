@@ -540,7 +540,11 @@ struct irq_chip {
  * IRQCHIP_ONESHOT_SAFE:	One shot does not require mask/unmask
  * IRQCHIP_EOI_THREADED:	Chip requires eoi() on unmask in threaded mode
  * IRQCHIP_SUPPORTS_LEVEL_MSI	Chip can provide two doorbells for Level MSIs
+<<<<<<< HEAD
  * IRQCHIP_PIPELINE_SAFE:	Chip can work in pipelined mode
+=======
+ * IRQCHIP_AFFINITY_PRE_STARTUP:      Default affinity update before startup
+>>>>>>> v4.19.207-cip58
  */
 enum {
 	IRQCHIP_SET_TYPE_MASKED		= (1 <<  0),
@@ -551,7 +555,8 @@ enum {
 	IRQCHIP_ONESHOT_SAFE		= (1 <<  5),
 	IRQCHIP_EOI_THREADED		= (1 <<  6),
 	IRQCHIP_SUPPORTS_LEVEL_MSI	= (1 <<  7),
-	IRQCHIP_PIPELINE_SAFE		= (1 <<  7),
+	IRQCHIP_PIPELINE_SAFE		= (1 <<  8),
+	IRQCHIP_AFFINITY_PRE_STARTUP	= (1 << 10),
 };
 
 #include <linux/irqdesc.h>
