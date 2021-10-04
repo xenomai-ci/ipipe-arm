@@ -454,9 +454,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
 	}
 	raw_spin_unlock_irqrestore(&bank->lock, flags);
 
-#ifdef CONFIG_IPIPE
-	irq_set_handler_locked(d, handle_level_irq);
-#else
 	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
 		irq_set_handler_locked(d, handle_level_irq);
 	else if (type & (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
@@ -467,7 +464,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
 		 * So just use handle_simple_irq.
 		 */
 		irq_set_handler_locked(d, handle_simple_irq);
-#endif
 	return 0;
 
 error:
