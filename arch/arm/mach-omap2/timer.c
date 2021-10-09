@@ -100,7 +100,9 @@ void set_cntfreq(void)
 
 static void omap2_gp_timer_ack(void)
 {
-	__omap_dm_timer_write_status(&clkev, OMAP_TIMER_INT_OVERFLOW);
+	struct omap_dm_timer *timer = &clockevent.timer;
+
+	__omap_dm_timer_write_status(timer, OMAP_TIMER_INT_OVERFLOW);
 }
 
 static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
@@ -390,7 +392,6 @@ void tick_broadcast(const struct cpumask *mask)
 }
 #endif
 
-<<<<<<< HEAD
 #ifdef CONFIG_IPIPE
 
 static struct ipipe_timer omap_shared_itimer = {
@@ -500,7 +501,7 @@ static void __init dmtimer_clkevt_init_common(struct dmtimer_clockevent *clkevt,
 
 #ifdef CONFIG_IPIPE
 	if (ipipe) {
-		omap_shared_itimer.irq = clkev.irq;
+		omap_shared_itimer.irq = clkevt->dev.irq;
 		omap_shared_itimer.min_delay_ticks = 3;
 		clkevt->dev.ipipe_timer = &omap_shared_itimer;
 	}
@@ -735,9 +736,6 @@ static void __init __omap_sync32k_timer_init(int clkev_nr, const char *clkev_src
 	}
 	omap_clk_init();
 	omap_dmtimer_init();
-<<<<<<< HEAD
-	omap2_gp_clockevent_init(clkev_nr, clk, clkev_prop);
-=======
 	dmtimer_clkevt_init_common(&clockevent, clkev_nr, clkev_src,
 				   CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
 				   cpu_possible_mask, clkev_prop, 300, "clockevent");
@@ -747,7 +745,6 @@ static void __init __omap_sync32k_timer_init(int clkev_nr, const char *clkev_src
 
 	if (soc_is_dra7xx())
 		dmtimer_percpu_quirk_init();
->>>>>>> v4.19.207-cip58
 
 	/* Enable the use of clocksource="gp_timer" kernel parameter */
 	if (use_gptimer_clksrc || gptimer)
