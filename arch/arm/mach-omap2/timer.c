@@ -495,7 +495,7 @@ static void __init dmtimer_clkevt_init_common(struct dmtimer_clockevent *clkevt,
 
 #ifdef CONFIG_IPIPE
 	if (ipipe) {
-		omap_shared_itimer.irq = clockevent.timer.irq;
+		omap_shared_itimer.irq = clkevt->dev.irq;
 		omap_shared_itimer.min_delay_ticks = 3;
 		clkevt->dev.ipipe_timer = &omap_shared_itimer;
 	}
