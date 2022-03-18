@@ -99,7 +99,7 @@ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
 			irq = irq_find_mapping(pp->irq_domain,
 					       (i * MAX_MSI_IRQS_PER_CTRL) +
 					       pos);
-			generic_handle_irq(irq);
+			ipipe_handle_demuxed_irq(irq);
 			pos++;
 		}
 	}
