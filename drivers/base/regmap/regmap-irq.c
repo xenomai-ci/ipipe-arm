@@ -214,10 +214,33 @@ static void regmap_irq_enable(struct irq_data *data)
 	struct regmap_irq_chip_data *d = irq_data_get_irq_chip_data(data);
 	struct regmap *map = d->map;
 	const struct regmap_irq *irq_data = irq_to_regmap_irq(d, data->hwirq);
+	unsigned int reg = irq_data->reg_offset / map->reg_stride;
+	unsigned int mask, type;
 	unsigned long flags;
-
+	
 	flags = hard_cond_local_irq_save();
-	d->mask_buf[irq_data->reg_offset / map->reg_stride] &= ~irq_data->mask;
+	type = irq_data->type.type_falling_val | irq_data->type.type_rising_val;
+
+	/*
+	 * The type_in_mask flag means that the underlying hardware uses
+	 * separate mask bits for rising and falling edge interrupts, but
+	 * we want to make them into a single virtual interrupt with
+	 * configurable edge.
+	 *
+	 * If the interrupt we're enabling defines the falling or rising
+	 * masks then instead of using the regular mask bits for this
+	 * interrupt, use the value previously written to the type buffer
+	 * at the corresponding offset in regmap_irq_set_type().
+	 */
+	if (d->chip->type_in_mask && type)
+		mask = d->type_buf[reg] & irq_data->mask;
+	else
+		mask = irq_data->mask;
+
+	if (d->chip->clear_on_unmask)
+		d->clear_status = true;
+
+	d->mask_buf[reg] &= ~mask;
 	hard_cond_local_irq_restore(flags);
 }
 
